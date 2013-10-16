@@ -48,13 +48,20 @@ public class GeoLocationAndroid extends Geolocation {
         locationManager.removeTestProvider(provider);
     }
 
-    public void setTestPosition(double longitude, double latitude){
+    public void setTestPosition(double longitude, double latitude, float bearing, float speed){
         Location mockLocation = new Location("Ifsttar"); // a string
         mockLocation.setLatitude(latitude);  // double
         mockLocation.setLongitude(longitude);
         mockLocation.setAltitude(0.0);
+        mockLocation.setBearing(bearing);
+        mockLocation.setSpeed(speed);
+
         mockLocation.setTime(System.currentTimeMillis());
         locationManager.setTestProviderLocation( provider, mockLocation);
+    }
+
+    public void startTrace(String coordinate, int waitTime){
+           new Thread(new TraceAndroid(this,coordinate,waitTime)).start();
     }
 
     @Override

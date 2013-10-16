@@ -9,14 +9,16 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Trace extends Geolocation {
+public class TraceAndroid implements Runnable {
 
 	
 	private final List<GpsData> positions; 
 	private final int waitTime;
-	
-	public Trace(String coordinates, int waitTime) {
+    private final GeoLocationAndroid geo;
+
+    public TraceAndroid(GeoLocationAndroid geo, String coordinates, int waitTime) {
 		this.waitTime=waitTime;
+        this.geo=geo;
 		positions = parse(coordinates);
 	}
 	
@@ -41,8 +43,8 @@ public class Trace extends Geolocation {
 		
 		return a;
 	}
-	
-	private WGS84 parsePos(String pos){
+
+    static  private WGS84 parsePos(String pos){
 		pos.trim();
 		
 		String[] tokens = pos.split(",");
@@ -55,8 +57,8 @@ public class Trace extends Geolocation {
 		else
 			return null;
 	}
-	
-	private List<GpsData> parse(String coordinates) {
+
+    private List<GpsData> parse(String coordinates) {
 		ArrayList<GpsData> l = new ArrayList<GpsData>();
 		double t=0;
 		WGS84 oldPos = null;
@@ -80,17 +82,17 @@ public class Trace extends Geolocation {
 		return l;
 	}
 
-    /*	@Override
+    	@Override
         public void run() {
-            super.run();
+            //super.run();
             while(true){
                 for(GpsData data:positions){
                     try {
+                        WGS84 pos = data.getPosition();
 
-                        setCurrentPos(data.getPosition());
-                        setCurrentTrack(data.getTrack());
+                        geo.setTestPosition(pos.longitude(),pos.latitude(),data.getTrack().floatValue(),0.0f);
 
-                        if(waitTime!=0) sleep(waitTime);
+                        if(waitTime!=0) Thread.sleep(waitTime);
 
                     } catch(InterruptedException ie) {
                         System.err.println("Waiting time error : " + ie);
@@ -98,19 +100,14 @@ public class Trace extends Geolocation {
                 }
             }
         }
-    */
-	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
 
-	}
 	
 	
-	static public Trace traceFromFile(String path, int waitTime) throws FileNotFoundException, IOException {
+	/*static public TraceAndroid traceFromFile(String path, int waitTime) throws FileNotFoundException, IOException {
 		return traceFromInput(new FileReader(new File(path)),waitTime);
 	}
 	
-	static public Trace traceFromInput(InputStreamReader i, int waitTime) throws IOException{
+	static public TraceAndroid traceFromInput(InputStreamReader i, int waitTime) throws IOException{
 		BufferedReader br = new BufferedReader(i);
 	    try {
 	        StringBuilder sb = new StringBuilder();
@@ -121,18 +118,18 @@ public class Trace extends Geolocation {
 	            sb.append(' ');
 	            line = br.readLine();
 	        }
-	        return new Trace(sb.toString(),waitTime);
+	        return new TraceAndroid(sb.toString(),waitTime);
 	    
 		} finally {
 	        br.close();
 	    }
 	}
 
-	/*public static void main (String[] args) throws Exception{
+	public static void main (String[] args) throws Exception{
 		if(args.length == 0)
 			return;
 		
-		Trace t=null;
+		TraceAndroid t=null;
 		
 		if(args.length == 2)
 			t = traceFromFile(args[0],Integer.parseInt(args[1]));

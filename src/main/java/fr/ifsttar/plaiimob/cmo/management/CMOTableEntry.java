@@ -172,11 +172,11 @@ public class CMOTableEntry {
     }
 
     public double azimuth(double longitude, double latitude) {
-        return Physics.computeAzimuth(getLongitude(), getLatitude(), longitude, latitude);
+        return Physics.computeAzimuth(longitude, latitude, getLongitude(), getLatitude());
     }
 
     public double azimuthRad(double longitude, double latitude) {
-        return Physics.computeAzimuthRad( getLongitude(), getLatitude(), longitude, latitude);
+        return Physics.computeAzimuthRad(longitude, latitude, getLongitude(), getLatitude());
     }
 
     /**
