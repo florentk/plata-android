@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">PlayMob</string>
+    <string name="app_name">PlaiiMob</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">PlayMob</string>
+    <string name="hello_world">PlaiiMob</string>
     <string name="myPos">Ma position :</string>
     <string name="noVehicle">Pas de position</string>
+    <string name="action_neighborhood">Show Neighborhood</string>
 </resources>
