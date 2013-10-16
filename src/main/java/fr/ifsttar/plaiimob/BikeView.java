@@ -45,7 +45,7 @@ public class BikeView  extends View implements GeolocationListener {
         super(context,attrs);
 
         paint = new Paint();
-        paint.setColor(Color.BLACK);
+        paint.setColor(Color.GRAY);
         paint.setStrokeWidth(1);
         paint.setTextSize(10);
 

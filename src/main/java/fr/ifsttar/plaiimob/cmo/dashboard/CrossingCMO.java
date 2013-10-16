@@ -28,10 +28,11 @@ public class CrossingCMO implements Indicator {
 		}
 		@Override
 		public String toString() {
-			return  "t=" + format.format(t) + 
+			/*return  "t=" + format.format(t) +
 				" s, t_cmo=" + format.format(t_cmo) + 
 				" s, d=" + format.format(d) + " m" +
-				" m, a=" + format.format(azimuth) + " °";			
+				" m, a=" + format.format(azimuth) + " °"*/;
+            return format.format(d) + " m";
 		}
 	}
 	
@@ -137,11 +138,17 @@ public class CrossingCMO implements Indicator {
 	@Override
 	public String toString() {
 		StringBuffer s=new StringBuffer();
+        CrossingCMOEntry selectedEntry = null;
 		
 		for(Entry<CMOTableEntry,CrossingCMOEntry> e:cmoTable.entrySet())
-			s.append(e.getKey().getCmoID() + " " + e.getValue());
-		
-		return s.toString();
+                if(selectedEntry==null || e.getValue().t < selectedEntry.t )
+                    selectedEntry = e.getValue();
+
+
+		if(selectedEntry==null)
+            return "";
+        else
+		    return selectedEntry.toString();
 	}
 	
 	
