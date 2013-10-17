@@ -179,9 +179,11 @@ public class MainActivity extends Activity {
             }
         });
 
+        //geolocation.addTestProvider();
+
         geolocation.startTrace(trace,300);
 
-        //geolocation.addTestProvider();
+
      }
 
 
