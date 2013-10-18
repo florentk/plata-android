@@ -1,6 +1,7 @@
 package fr.ifsttar.plaiimob;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.app.Activity;
@@ -11,7 +12,15 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapController;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.ItemizedIconOverlay;
+import org.osmdroid.views.overlay.OverlayItem;
+
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import fr.ifsttar.plaiimob.cmo.beaconning.BeaconGenerator;
@@ -61,6 +70,7 @@ public class MainActivity extends Activity {
         initCMOManager();
         initDashboard();
         initBikeView();
+        initMapView();
 
         /*Intent intent = new Intent(this, BeaconRecvService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);*/
@@ -122,6 +132,40 @@ public class MainActivity extends Activity {
         setNeighbour(s.toString());
     }*/
 
+    private void addMarkerResId(MapView mapView, int idRes, GeoPoint pos){
+        OverlayItem overlayItem = new OverlayItem("Here", "Current Position", pos);
+        Drawable marker = this.getResources().getDrawable(idRes);
+        overlayItem.setMarker(marker);
+
+        final ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
+        items.add(overlayItem);
+
+        ItemizedIconOverlay<OverlayItem> overlay = new ItemizedIconOverlay<OverlayItem>(
+                getApplicationContext(),items,
+                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+                        return true;
+                    }
+                    public boolean onItemLongPress(final int index, final OverlayItem item) {
+                        return true;
+                    }
+                });
+        mapView.getOverlays().add(overlay);
+    }
+
+    private void initMapView() {
+        MapView mMapView = (MapView) findViewById(R.id.mapview);
+        mMapView.setTileSource(TileSourceFactory.MAPNIK);
+        mMapView.setBuiltInZoomControls(true);
+        MapController mMapController = mMapView.getController();
+        mMapController.setZoom(16);
+        GeoPoint gPt = new GeoPoint(50.60612721473346,3.129384328171011);
+        //Centre map near to Hyde Park Corner, London
+        mMapController.setCenter(gPt);
+
+        addMarkerResId(mMapView, R.drawable.car , gPt);
+    }
+
     private void initBikeView() {
         BikeView bike = (BikeView) findViewById(R.id.bikeView);
 
@@ -157,7 +201,7 @@ public class MainActivity extends Activity {
     private void initLocationManager() {
 
         geolocation = new GeoLocationAndroid((LocationManager) this.getSystemService(Context.LOCATION_SERVICE),
-                            /*LocationManager.GPS_PROVIDER*/"TestPlaiimob");
+                            LocationManager.GPS_PROVIDER/*"TestPlaiimob"*/);
 
 
         //setMyPos("Waiting for gps provider...");
@@ -181,7 +225,7 @@ public class MainActivity extends Activity {
 
         //geolocation.addTestProvider();
 
-        geolocation.startTrace(trace,300);
+        //geolocation.startTrace(trace,300);
 
 
      }

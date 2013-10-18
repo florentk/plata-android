@@ -46,13 +46,25 @@
                     android:gravity="center_vertical|center_horizontal"/>
         </LinearLayout>
 
-        <view
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                class="fr.ifsttar.plaiimob.BikeView"
-                android:id="@+id/bikeView"
-                android:layout_centerHorizontal="true"
-                />
+        <FrameLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+            <view
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    class="fr.ifsttar.plaiimob.BikeView"
+                    android:id="@+id/bikeView"
+                    android:layout_centerHorizontal="true"
+                    android:visibility="invisible"/>
+
+            <org.osmdroid.views.MapView
+                    android:id="@+id/mapview"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    tilesource="Mapnik"
+                    />
+        </FrameLayout>
 
     </LinearLayout>
 
