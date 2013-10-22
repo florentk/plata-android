@@ -48,8 +48,6 @@ public class CMOManagement implements BeaconRecvListener {
 
     public CMOManagement(){
 		table = new CMOTable();
-		
-		new Timer().schedule(new RemoveExpiredEntry() , 0, CHECK_EXPIRED_ENTRY_INTERVAL);
 
         mListenerHandler = new Handler() {
             @Override
@@ -57,6 +55,8 @@ public class CMOManagement implements BeaconRecvListener {
                 _handleMessage(msg);
             }
         };
+
+        new Timer().schedule(new RemoveExpiredEntry() , 0, CHECK_EXPIRED_ENTRY_INTERVAL);
 	}
 
     private void notifyListenerChanged(CMOTableEntry cmo){

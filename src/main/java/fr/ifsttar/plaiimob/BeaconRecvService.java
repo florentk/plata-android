@@ -29,7 +29,7 @@ public class BeaconRecvService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        BeaconRecv bRecv=new BeaconRecvUDP(BeaconSenderUDP.initUDP(MainActivity.DST_PORT) , MainActivity.NAME);
+        BeaconRecv bRecv=new BeaconRecvUDP(BeaconSenderUDP.initUDP(MainActivity.DST_PORT) , MainActivity.DEFAULT_NAME);
         bRecv.addListener(m);
         bRecv.start();
         bRecv.interrupt();

@@ -7,7 +7,7 @@ import fr.ifsttar.plaiimob.cmo.beaconning.packet.*;
 import fr.ifsttar.plaiimob.geolocation.WGS84;
 
 
-public class BeaconGenerator extends Thread{
+public class BeaconGenerator {
 	/** freqency interval between each packet send (ms)*/
 	public static final int BEACON_FREQ_DEFAULT = 500;
 	
@@ -71,7 +71,7 @@ public class BeaconGenerator extends Thread{
 	/** 
 	 * broadcast a CMOStat packet
 	 */
-	public void broadcastCMOStatPacket(float longitude, float latitude, float h, float speed,
+	private void broadcastCMOStatPacket(float longitude, float latitude, float h, float speed,
                                        float track, int t) {
 
 		Log.i("Gen", "send_cmo_packet: " + longitude + " " + latitude + " " + h + " "
@@ -90,8 +90,29 @@ public class BeaconGenerator extends Thread{
 	}
 
     public void broadcastCMOStatPacket(WGS84 pos, float speed, float track, int t) {
-        broadcastCMOStatPacket(pos.longitude().floatValue(),pos.latitude().floatValue(),
-                pos.h().floatValue(),speed,track,t);
+
+
+        class BroadCMO implements Runnable {
+            WGS84 pos;
+            float speed;
+            float track;
+            int t;
+
+            BroadCMO(WGS84 pos, float speed, float track, int t) {
+                this.pos = pos;
+                this.speed = speed;
+                this.track = track;
+                this.t = t;
+            }
+
+            @Override
+            public void run() {
+                broadcastCMOStatPacket(pos.longitude().floatValue(), pos.latitude().floatValue(),
+                        pos.h().floatValue(), speed, track, t);
+            }
+        }
+
+        new Thread(new BroadCMO(pos,speed,track,t)).start();
     }
 
 	/**

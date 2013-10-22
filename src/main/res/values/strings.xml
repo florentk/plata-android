@@ -7,4 +7,6 @@
     <string name="myPos">Ma position :</string>
     <string name="noVehicle">Pas de position</string>
     <string name="action_neighborhood">Show Neighborhood</string>
+    <string name="action_map">Show Map</string>
+    <string name="action_compass">Show Compass</string>
 </resources>
