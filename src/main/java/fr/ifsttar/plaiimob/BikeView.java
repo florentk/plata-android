@@ -32,7 +32,7 @@ import fr.ifsttar.plaiimob.geolocation.WGS84;
 public class BikeView  extends View implements GeolocationListener {
 
     final private Paint paint;
-    final private Bitmap bicycle;
+    //final private Bitmap bicycle;
     final private Bitmap car;
     final private DecimalFormat df;
     final int m;
@@ -51,13 +51,13 @@ public class BikeView  extends View implements GeolocationListener {
         df = new DecimalFormat();
         df.setMaximumFractionDigits(0);
 
-        bicycle = BitmapFactory.decodeResource(getResources(), R.drawable.bike);
+        //bicycle = BitmapFactory.decodeResource(getResources(), R.drawable.bike);
         car = BitmapFactory.decodeResource(getResources(), R.drawable.car);
 
         Rect bText = new Rect();
         paint.getTextBounds("123.45 m",0,8,bText);
 
-        m = Math.max(bText.width(), bicycle.getHeight() + bText.height());
+        m = Math.max(bText.width(), car.getHeight() + bText.height());
     }
 
     public void setCMOManagement(CMOManagement cmoManagement) {
@@ -93,19 +93,19 @@ public class BikeView  extends View implements GeolocationListener {
         invalidate();
     }
 
-    private void drawNeighbour(Canvas canvas, int x, int y, String label){
+    private void drawNeighbour(Canvas canvas, int x, int y, String label, Bitmap img){
         Rect bText = new Rect();
         paint.getTextBounds(label,0,label.length(),bText);
 
-        int x_img = x + (int)((m-(float)bicycle.getWidth()) / 2.0f);
+        int x_img = x + (int)((m-(float)img.getWidth()) / 2.0f);
         int x_txt = x + (int)((m-(float)bText.width()) / 2.0f);
 
-        canvas.drawBitmap(bicycle,x_img ,y ,paint);
+        canvas.drawBitmap(img,x_img ,y ,paint);
         canvas.drawText(label,x_txt,y + m,paint);
     }
 
-    private void drawNeighbourWithMargin(Canvas canvas, int x, int y, String label) {
-        drawNeighbour(canvas,x-m/2,y-m/2, label);
+    private void drawNeighbourWithMargin(Canvas canvas, int x, int y, String label, Bitmap img) {
+        drawNeighbour(canvas,x-m/2,y-m/2, label, img);
     }
 
     protected void onDraw(Canvas canvas) {
@@ -144,9 +144,10 @@ public class BikeView  extends View implements GeolocationListener {
                 final double a = e.azimuthRad(pos.longitude(),pos.latitude());
                 //final double a = (System.currentTimeMillis() % (int)(Math.PI*2000))/1000.0;
                 final double d = e.distance(pos.longitude(),pos.latitude());
+                final Bitmap img =  BitmapFactory.decodeResource(getResources(),MainActivity.getResourceFromCMOId(e.getCmoType()));
                 final int x = (int)((((double)L)/2.0) + ((double)r2)*Math.sin(a)) /*+ m_w / 4*/;
                 final int y = (int)((((double)l)/2.0) - ((double)r2)*Math.cos(a)) /*+ m_h / 4*/;
-                drawNeighbourWithMargin(canvas, x, y, df.format(d) + " m");
+                drawNeighbourWithMargin(canvas, x, y, df.format(d) + " m", img);
             }
         }
 

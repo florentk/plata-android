@@ -56,7 +56,7 @@ public class MainActivity extends Activity {
     private CrossingCMO crossingCMO;
     private GeoLocationAndroid geolocation;
     private Dashboard db = new Dashboard();
-    //private ArrayList<OverlayItem> neighborOverlayItems = new ArrayList<OverlayItem>();
+    private ItemizedIconOverlay<OverlayItem> overlayNeighborItem;
     private DecimalFormat df = new DecimalFormat();
     //private boolean mBound = false;
     private BeaconGenerator beaconGenerator;
@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
         initCMOManager();
         initDashboard();
         initBikeView();
-        //initMapView();
+        initMapView();
 
     }
 
@@ -159,12 +159,12 @@ public class MainActivity extends Activity {
                 break;*/
 
             case R.id.action_map:
-                findViewById(R.id.bikeView).setVisibility(0);
-                //findViewById(R.id.mapview).setVisibility(1);
+                findViewById(R.id.bikeView).setVisibility(View.INVISIBLE);
+                findViewById(R.id.mapview).setVisibility(View.VISIBLE);
                 break;
             case R.id.action_compas:
-                findViewById(R.id.bikeView).setVisibility(1);
-                //findViewById(R.id.mapview).setVisibility(0);
+                findViewById(R.id.bikeView).setVisibility(View.VISIBLE);
+                findViewById(R.id.mapview).setVisibility(View.INVISIBLE);
                 break;
 
             default:
@@ -183,45 +183,59 @@ public class MainActivity extends Activity {
         TextView poseValue = (TextView)findViewById(R.id.neighbour);
         //planetNameValue.setText("50°38'13.92\"N, 3°3'47.88\"E");
         poseValue.setText(neighbour);
-    }
-
-    private void updateNeighbour(){
-        Collection<CMOTableEntry> ns = cmoManagement.getTable();
-        StringBuilder s = new StringBuilder();
-
-
-        for (CMOTableEntry e : ns) {
-            s.append(e.getCmoID());
-            s.append(" ");
-            s.append(df.format(e.getLatitude()));
-            s.append(" ");
-            s.append(df.format(e.getLongitude()));
-            s.append("\n");
-        }
-
-        setNeighbour(s.toString());
     }*/
 
-    /*private void addMarkerResId(MapView mapView, int idRes, GeoPoint pos){
-        OverlayItem overlayItem = new OverlayItem("Here", "Current Position", pos);
+
+
+    private void addMarkerResId(int idRes, GeoPoint pos, String label){
+        OverlayItem overlayItem = new OverlayItem(label, "Neighbord", pos);
         Drawable marker = this.getResources().getDrawable(idRes);
         overlayItem.setMarker(marker);
-        neighborOverlayItems.add(overlayItem);
+        overlayNeighborItem.addItem(overlayItem);
+    }
 
+    static public int getResourceFromCMOId(short id){
+        switch(id){
+             case CMOHeader.CMO_TYPE_BIKE:
+                return R.drawable.bike;
+             case CMOHeader.CMO_TYPE_BUS:
+                 return R.drawable.bus;
+             case CMOHeader.CMO_TYPE_CAR:
+                 return R.drawable.twingo_red;
+             case CMOHeader.CMO_TYPE_MOTORBIKE:
+                 return R.drawable.motorbike;
+             case CMOHeader.CMO_TYPE_TRUCK:
+                return R.drawable.truck;
+             case CMOHeader.CMO_TYPE_WALKER:
+                return R.drawable.walker;
+             case CMOHeader.CMO_TYPE_SPOT:
+                   return R.drawable.ap;
+        }
 
+        return R.drawable.car;
+    }
 
+    private void updateNeighborItem(){
+        Collection<CMOTableEntry> ns = cmoManagement.getTable();
+        WGS84 myPos = geolocation.getCurrentPos();
 
-        ItemizedIconOverlay<OverlayItem> overlay = new ItemizedIconOverlay<OverlayItem>(
-                getApplicationContext(),neighborOverlayItems,
-                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
-                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
-                        return true;
-                    }
-                    public boolean onItemLongPress(final int index, final OverlayItem item) {
-                        return true;
-                    }
-                });
-        mapView.getOverlays().add(overlay);
+        overlayNeighborItem.removeAllItems();
+
+        for (CMOTableEntry cmo : ns ) {
+            addMarkerResId(
+                    getResourceFromCMOId(cmo.getCmoType()),
+                    new GeoPoint(cmo.getLatitude(),cmo.getLongitude()),
+                    cmo.getCmoID()
+           );
+        }
+
+        addMarkerResId(
+                getResourceFromCMOId((short) 0),
+                new GeoPoint(myPos.latitude(),myPos.longitude()),
+                "Me"
+        );
+
+        findViewById(R.id.mapview).invalidate();
 
     }
 
@@ -232,11 +246,51 @@ public class MainActivity extends Activity {
         MapController mMapController = mMapView.getController();
         mMapController.setZoom(16);
         GeoPoint gPt = new GeoPoint(50.60612721473346,3.129384328171011);
-        //Centre map near to Hyde Park Corner, London
         mMapController.setCenter(gPt);
 
-        addMarkerResId(mMapView, R.drawable.car , gPt);
-    }*/
+        overlayNeighborItem = new ItemizedIconOverlay<OverlayItem>(
+                getApplicationContext(),new ArrayList<OverlayItem>(),
+                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+                        return true;
+                    }
+                    public boolean onItemLongPress(final int index, final OverlayItem item) {
+                        return true;
+                    }
+                });
+
+        mMapView.getOverlays().add(overlayNeighborItem);
+
+        cmoManagement.addListener(new CMOTableListener() {
+            @Override
+            public void tableChanged(CMOTableEntry table) {
+                updateNeighborItem();
+            }
+
+            @Override
+            public void tableCMORemoved(CMOTableEntry table) {
+                updateNeighborItem();
+            }
+
+            @Override
+            public void tableCMOAdded(CMOTableEntry table) {
+                updateNeighborItem();
+            }
+        });
+
+        geolocation.addPositionListener(new GeolocationListener() {
+            @Override
+            public void positionChanged(WGS84 position, Double speed, Double track, int time) {
+                updateNeighborItem();
+                MapView mMapView = (MapView) findViewById(R.id.mapview);
+                WGS84 myPos = geolocation.getCurrentPos();
+                mMapView.getController().setCenter(new GeoPoint(myPos.latitude(),myPos.longitude()));
+            }
+        });
+
+        //addMarkerResId(R.drawable.car , gPt);
+
+    }
 
     private void initGenerator() {
         cmoName = Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -266,22 +320,6 @@ public class MainActivity extends Activity {
 
         df.setMaximumFractionDigits(5);
 
-        /*cmoManagement.addListener(new CMOTableListener() {
-            @Override
-            public void tableChanged(CMOTableEntry table) {
-                updateNeighbour();
-            }
-
-            @Override
-            public void tableCMORemoved(CMOTableEntry table) {
-                updateNeighbour();
-            }
-
-            @Override
-            public void tableCMOAdded(CMOTableEntry table) {
-                updateNeighbour();
-            }
-        });*/
     }
 
     private void initLocationManager() {
@@ -290,26 +328,14 @@ public class MainActivity extends Activity {
                             true);
 
 
-        //setMyPos("Waiting for gps provider...");
-
-        /*Button sendButton = (Button) findViewById(R.id.buttonSend);
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                geolocation.setTestPosition(3.135364083021891,50.60616289950799,0.0f,0.0f);
-            }
-        } );*/
-
 
         geolocation.addPositionListener(new GeolocationListener() {
             @Override
             public void positionChanged(WGS84 position, Double speed, Double track, int time) {
-                //setMyPos("GPS - " + df.format(position.latitude()) + " " + df.format(position.longitude()));
                 beaconGenerator.broadcastCMOStatPacket(position, speed.floatValue(), track.floatValue(), time);
             }
         });
 
-        //geolocation.addTestProvider();
 
         geolocation.startTrace(trace,300);
 
@@ -318,7 +344,7 @@ public class MainActivity extends Activity {
 
 
     private void releaseLocationManager() {
-        geolocation.removeTestProvider();
+        //geolocation.removeTestProvider();
     }
 
     private void alertUpdate(){
@@ -334,7 +360,10 @@ public class MainActivity extends Activity {
                 txt.setVisibility(View.VISIBLE);
                 img.setVisibility(View.VISIBLE);
                 txt.setText(crossingCMO.toString());
-                img.setImageResource(R.drawable.bike);
+
+                CMOTableEntry cmo = crossingCMO.getClosestCMO();
+                if(cmo!=null)
+                    img.setImageResource(getResourceFromCMOId(cmo.getCmoType()));
                 break;
             case CrossingCMO.DECISION_HAZARD:
                 txt.setVisibility(View.VISIBLE);

@@ -47,6 +47,7 @@ public class CrossingCMO implements Indicator {
 	
 	private int decision=DECISION_NONE;	
 	private Date lastDecissionTime = null;
+    private Entry<CMOTableEntry,CrossingCMOEntry> closestCMO = null;
 	
 	
 	
@@ -58,7 +59,6 @@ public class CrossingCMO implements Indicator {
 	
 	final private CMOManagement cmo;
 	final private Geolocation geo;
-	
 	final private Hashtable<CMOTableEntry,CrossingCMOEntry> cmoTable = new Hashtable<CMOTableEntry,CrossingCMOEntry>();
 	
 	public void updateCrossingCMO(){		
@@ -104,6 +104,12 @@ public class CrossingCMO implements Indicator {
 					decision = newDecision;
 				}
 			}
+
+            closestCMO = null;
+            for(Entry<CMOTableEntry,CrossingCMOEntry> e:cmoTable.entrySet())
+                if(closestCMO==null || e.getValue().t < closestCMO.getValue().t )
+                    closestCMO = e;
+
 		}
 		
 		//System.out.println(toString());
@@ -126,6 +132,10 @@ public class CrossingCMO implements Indicator {
 		return decision;
 	}
 
+    public CMOTableEntry getClosestCMO(){
+        return closestCMO.getKey();
+    }
+
 	public Map<CMOTableEntry, CrossingCMOEntry> getCrossingTimeTable() {
 		return cmoTable;
 	}
@@ -137,18 +147,10 @@ public class CrossingCMO implements Indicator {
 
 	@Override
 	public String toString() {
-		StringBuffer s=new StringBuffer();
-        CrossingCMOEntry selectedEntry = null;
-		
-		for(Entry<CMOTableEntry,CrossingCMOEntry> e:cmoTable.entrySet())
-                if(selectedEntry==null || e.getValue().t < selectedEntry.t )
-                    selectedEntry = e.getValue();
-
-
-		if(selectedEntry==null)
+		if(closestCMO==null)
             return "";
         else
-		    return selectedEntry.toString();
+		    return closestCMO.getValue().toString();
 	}
 	
 	
