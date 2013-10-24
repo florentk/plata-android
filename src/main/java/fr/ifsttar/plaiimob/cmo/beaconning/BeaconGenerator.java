@@ -20,13 +20,12 @@ public class BeaconGenerator {
 	 */
 	public static final byte TTL_INIT = 16;
 
+    private final String id;
+    private final short type;
+    private final int beaconFreq;
+    private final BeaconSender sender;
+
 	private static int seq=0;
-
-	private String id;
-	private short type;
-	private int beaconFreq;
-	private BeaconSender sender;
-
 
 	/**
 	 * 
@@ -89,30 +88,14 @@ public class BeaconGenerator {
 		
 	}
 
-    public void broadcastCMOStatPacket(WGS84 pos, float speed, float track, int t) {
-
-
-        class BroadCMO implements Runnable {
-            WGS84 pos;
-            float speed;
-            float track;
-            int t;
-
-            BroadCMO(WGS84 pos, float speed, float track, int t) {
-                this.pos = pos;
-                this.speed = speed;
-                this.track = track;
-                this.t = t;
-            }
-
+    public void broadcastCMOStatPacket(final WGS84 pos,final float speed,final float track, final int t) {
+        new Thread(new Runnable() {
             @Override
             public void run() {
                 broadcastCMOStatPacket(pos.longitude().floatValue(), pos.latitude().floatValue(),
                         pos.h().floatValue(), speed, track, t);
             }
-        }
-
-        new Thread(new BroadCMO(pos,speed,track,t)).start();
+        }).start();
     }
 
 	/**

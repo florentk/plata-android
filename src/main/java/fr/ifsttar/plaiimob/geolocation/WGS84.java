@@ -14,15 +14,15 @@ public class WGS84 {
 	/**
 	 * longitude (in ddmm.mmmm)
 	 */
-	private Double longitude;
+	private final Double longitude;
 	/**
 	 * latitude (in ddmm.mmmm)
 	 */
-	private Double latitude;
+	private final Double latitude;
 	/**
 	 * ellipsoidal elevation (in meters)
 	 */
-	private Double h;
+	private final Double h;
 
 
 
@@ -54,10 +54,10 @@ public class WGS84 {
 	 * @param pos string like 50°37'57.41"N 3°5'8.26"E
 	 */
 	public WGS84(String pos) {
+        Double latitude=0.0,longitude=0.0;
+
 		pos.trim();
-		
-		
-		
+
 		String delims = " ";
 		String[] tokens = pos.split(delims);
 		
@@ -71,12 +71,15 @@ public class WGS84 {
 			
 			//init corresponding value
 			if(p.getType() == StringParser.LATITUDE)
-				this.latitude = p.getValue();
-			
+				latitude = p.getValue();
+            else
+
 			if(p.getType() == StringParser.LONGITUDE)
-				this.longitude = p.getValue();			
+				longitude = p.getValue();
 		}
-		
+
+        this.longitude = longitude;
+        this.latitude = latitude;
 		this.h = 0.0;
 	}	
 	

@@ -36,19 +36,16 @@ public class CMOManagement implements BeaconRecvListener {
 
 	/** interval between two expired entry check (in ms) */
 	public static final int CHECK_EXPIRED_ENTRY_INTERVAL = 1000;
-    private Handler mListenerHandler;
 
     private static final int TYPE_MSG_TABLE_CHANGED = 1;
     private static final int TYPE_MSG_DELETE_EXPIRED = 2;
 
-    private CMOTable table;
-	
+    private final CMOTable table = new CMOTable();
 	private final Collection<CMOTableListener> listerners = new ArrayList<CMOTableListener>();
+    private final Handler mListenerHandler;
 
 
     public CMOManagement(){
-		table = new CMOTable();
-
         mListenerHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {

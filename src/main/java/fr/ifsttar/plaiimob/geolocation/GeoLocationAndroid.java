@@ -14,8 +14,26 @@ import android.os.SystemClock;
 public class GeoLocationAndroid extends Geolocation {
 
 
-    private LocationManager locationManager;
-    String provider;
+    private final LocationManager locationManager;
+    private final String provider;
+    private TraceAndroid tracer = null;
+
+    private LocationListener locationListener = new LocationListener() {
+        public void onLocationChanged(Location l) {
+            //listener already call after removeUpdate
+
+            setCurrentPos(new WGS84(l.getLongitude(),l.getLatitude(),l.getAltitude()));
+            setCurrentSpeed((double)l.getSpeed());
+            setCurrentTrack((double)l.getBearing());
+
+        }
+
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+        public void onProviderEnabled(String provider) {}
+
+        public void onProviderDisabled(String provider) {}
+    };
 
     public GeoLocationAndroid(LocationManager locationManager, boolean fake) {
         this.locationManager = locationManager;
@@ -25,20 +43,7 @@ public class GeoLocationAndroid extends Geolocation {
         else
             this.provider = LocationManager.GPS_PROVIDER;
 
-                    LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location l) {
-                // Called when a new location is found by the network location provider.
-                setCurrentPos(new WGS84(l.getLongitude(),l.getLatitude(),l.getAltitude()));
-                setCurrentSpeed((double)l.getSpeed());
-                setCurrentTrack((double)l.getBearing());
-            }
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-            public void onProviderEnabled(String provider) {}
-
-            public void onProviderDisabled(String provider) {}
-        };
 
         if (fake && locationManager.getProvider(provider)==null)
             addTestProvider();
@@ -79,11 +84,18 @@ public class GeoLocationAndroid extends Geolocation {
     }
 
     public void startTrace(String coordinate, int waitTime){
-           new Thread(new TraceAndroid(this,coordinate,waitTime)).start();
+        tracer = new TraceAndroid(this,coordinate,waitTime);
+        new Thread(tracer).start();
+    }
+
+    public void stopTrace(){
+        if(tracer != null)
+            tracer.stopTrace();
     }
 
     @Override
     public void dispose() {
-
+        stopTrace();
+        locationManager.removeUpdates(locationListener);
     }
 }

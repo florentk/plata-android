@@ -104,16 +104,17 @@ public class CrossingCMO implements Indicator {
 					decision = newDecision;
 				}
 			}
-
-            closestCMO = null;
-            for(Entry<CMOTableEntry,CrossingCMOEntry> e:cmoTable.entrySet())
-                if(closestCMO==null || e.getValue().t < closestCMO.getValue().t )
-                    closestCMO = e;
-
 		}
 		
 		//System.out.println(toString());
 	}
+
+    public void updateClosestCMO(){
+        closestCMO = null;
+        for(Entry<CMOTableEntry,CrossingCMOEntry> e:cmoTable.entrySet())
+            if(closestCMO==null || e.getValue().t < closestCMO.getValue().t )
+                closestCMO = e;
+    }
 	
 	public CrossingCMO(Geolocation geo, CMOManagement cmo) {
 		super();
@@ -124,6 +125,7 @@ public class CrossingCMO implements Indicator {
 	@Override
 	public void update() {
 		updateCrossingCMO();
+        updateClosestCMO();
 	}
 	
 	
@@ -133,6 +135,9 @@ public class CrossingCMO implements Indicator {
 	}
 
     public CMOTableEntry getClosestCMO(){
+        if(closestCMO == null)
+            return null;
+
         return closestCMO.getKey();
     }
 

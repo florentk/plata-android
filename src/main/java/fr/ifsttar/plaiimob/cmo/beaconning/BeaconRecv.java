@@ -19,13 +19,14 @@ import fr.ifsttar.plaiimob.cmo.beaconning.packet.CMOState;
 abstract public class BeaconRecv extends Thread {
 
 	private final Collection<BeaconRecvListener> listerners = new ArrayList<BeaconRecvListener>();
-	
-	
+
 	/** interval between two expired entry check (in ms) */
 	public static final int CHECK_EXPIRED_ENTRY_INTERVAL = 1000;	
 	
-	private HashMap<PacketForwardedKey, PacketForwardedValue>  packetFwd = new HashMap<PacketForwardedKey, PacketForwardedValue>();
-	
+	private final HashMap<PacketForwardedKey, PacketForwardedValue>  packetFwd = new HashMap<PacketForwardedKey, PacketForwardedValue>();
+
+    protected boolean actif = true;
+
 	private static final class PacketForwardedKey{	
 		private String CMOId;
 		private Integer seq;
@@ -182,5 +183,11 @@ abstract public class BeaconRecv extends Thread {
 			}
 		}
 	}
+
+    public void stopRecv(){
+        actif = false;
+    }
+
+    abstract public void dispose();
 			
 }

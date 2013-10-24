@@ -16,6 +16,8 @@ public class TraceAndroid implements Runnable {
 	private final int waitTime;
     private final GeoLocationAndroid geo;
 
+    private boolean actif = true;
+
     public TraceAndroid(GeoLocationAndroid geo, String coordinates, int waitTime) {
 		this.waitTime=waitTime;
         this.geo=geo;
@@ -85,8 +87,9 @@ public class TraceAndroid implements Runnable {
     	@Override
         public void run() {
             //super.run();
-            while(true){
+            while(actif){
                 for(GpsData data:positions){
+                    if(!actif) break;
                     try {
                         WGS84 pos = data.getPosition();
 
@@ -101,7 +104,9 @@ public class TraceAndroid implements Runnable {
             }
         }
 
-	
+	public void stopTrace(){
+        actif = false;
+    }
 	
 	/*static public TraceAndroid traceFromFile(String path, int waitTime) throws FileNotFoundException, IOException {
 		return traceFromInput(new FileReader(new File(path)),waitTime);

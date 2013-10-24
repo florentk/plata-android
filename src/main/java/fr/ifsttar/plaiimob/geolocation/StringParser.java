@@ -17,8 +17,6 @@ public class StringParser {
 	private Double value;
 	private byte type;
 
-
-
 	// 15m/s
 	public void parseSpeed(String pos) {
 	     pos.trim();
@@ -27,11 +25,11 @@ public class StringParser {
 	     s.useLocale(Locale.US);
 	     s.findInLine("([0-9.]+)m/s");
 	     MatchResult result = s.match();
-	     
+
 	     if(result.groupCount() != 1) throw new IllegalArgumentException();
 
-	     value = Double.parseDouble(result.group(1)) ;
-	     type = SPEED;	  
+	     this.value = Double.parseDouble(result.group(1)) ;
+         this.type = SPEED;
 	     	      
 	     s.close(); 			
 	}

@@ -12,10 +12,10 @@ import org.json.simple.parser.ParseException;*/
  */
 public  class GpsData{
 	
-	private Double t;
-	private WGS84 position;
-	private Double speed;
-	private Double track;
+	private final Double t;
+	private final WGS84 position;
+	private final Double speed;
+	private final Double track;
 
 	public GpsData(Double t,WGS84 position, Double speed, Double track) {
 		super();
@@ -23,16 +23,7 @@ public  class GpsData{
 		this.position = position;
 		this.speed = speed;
 		this.track = track;
-	}	
-	
-	/**
-	 * convert a speed in knot unit to SI unit
-	 * @param speed in knot
-	 * @return speed in meter per second
-	 */
-	/*static private Double knotToSI(Double speed){
-		return new Double (0.514444 * speed.doubleValue());
-	}*/
+	}
 	
 	static private Double checkDoubleNull(Double val){
 		if (val == null)

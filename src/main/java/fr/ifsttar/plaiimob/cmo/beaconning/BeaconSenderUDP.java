@@ -14,34 +14,37 @@ public class BeaconSenderUDP implements BeaconSender {
 	public static final int DEFAULT_PORT = 50123;
 	public static final String DEFAULT_BROADCAST_ADDRESS =  "192.168.0.255";
 
-	
-	private DatagramSocket socket = null;
-	private int port = DEFAULT_PORT;
-	
-	private InetAddress broacastAddress = null;
+    /** parameters */
+	private final DatagramSocket socket;
+	private final int port;
+	private final InetAddress broadcastAddress;
 
-    public BeaconSenderUDP(DatagramSocket socket, int port, String address) {
+    public BeaconSenderUDP(int port, String address) {
 		super();
-		this.port = port;
-		this.socket = socket;
-		try {
-			this.broacastAddress = InetAddress.getByName(address);
-		} catch (UnknownHostException e) {
-            Log.e("SendUDP", "" + e);
-		}
-	}
-    
-    public BeaconSenderUDP(DatagramSocket socket) {
-    	this(socket, DEFAULT_PORT,DEFAULT_BROADCAST_ADDRESS);
-	}
-    
-    public BeaconSenderUDP(DatagramSocket socket, int port) {
-    	this(socket, port, DEFAULT_BROADCAST_ADDRESS);
-	}   
+        this.port = port;
+        this.socket = initUDP();
 
+        InetAddress broadcastAddress;
+        try {
+            broadcastAddress = InetAddress.getByName(address);
+        } catch (UnknownHostException e) {
+            broadcastAddress = null;
+            Log.e("SendUDP", "" + e);
+        }
+
+        this.broadcastAddress = broadcastAddress;
+	}
+    
+    public BeaconSenderUDP() {
+    	this(DEFAULT_PORT,DEFAULT_BROADCAST_ADDRESS);
+	}
+    
+    public BeaconSenderUDP(int port) {
+    	this(port, DEFAULT_BROADCAST_ADDRESS);
+	}
 	
     private InetAddress getBroadcastAddress() throws IOException {
-        return broacastAddress;
+        return broadcastAddress;
     }
 	
 	@Override
@@ -79,6 +82,10 @@ public class BeaconSenderUDP implements BeaconSender {
         	System.err.println("Could not create UDP socket " + e);
         	return null;
         }
-    }	  	
+    }
 
+    @Override
+    public void dispose() {
+        socket.close();
+    }
 }

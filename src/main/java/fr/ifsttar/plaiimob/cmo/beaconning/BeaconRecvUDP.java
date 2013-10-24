@@ -19,23 +19,21 @@ import fr.ifsttar.plaiimob.cmo.beaconning.packet.*;
 
 public class BeaconRecvUDP extends  BeaconRecv {
 
-    DatagramSocket socket = null;
-	int delay;
-	String myCmoId;
+    private final DatagramSocket socket;
+    private final int delay;
+    private final String myCmoId;
 
-
-	public BeaconRecvUDP(DatagramSocket socket, int delay, String myCmoId){
+	public BeaconRecvUDP(int port, int delay, String myCmoId){
 		super();
 		this.delay = delay;
 		this.myCmoId = myCmoId;
-		this.socket = socket;
+		this.socket = BeaconSenderUDP.initUDP(port);
 	}
 	
 	
-	public BeaconRecvUDP(DatagramSocket socket,String myCmoId){
-		this(socket, 0,myCmoId);
+	public BeaconRecvUDP(int port, String myCmoId){
+		this(port, 0,myCmoId);
 	}	
-
 
 	//receive a packet from UDP
 	public void receivePacket(byte[] data) {
@@ -61,35 +59,24 @@ public class BeaconRecvUDP extends  BeaconRecv {
 		byte[] data = new byte[256];
 		
         if (socket == null) {
-        	System.err.println("Socket is not initialized");
+            Log.e("RecvUDP","Socket is not initialized");
             return;
         }		
 		
 		try{
-			while(true)
+			while(actif)
 			{
 				DatagramPacket packet = new DatagramPacket(data, data.length);
 				socket.receive(packet);
-				receivePacket(packet.getData());
+				if(actif) receivePacket(packet.getData());
 			}
 		} catch (IOException e) {
             Log.e("RecvUDP", "Could not receive packet: " + e);
 		}
 	}
-	
 
-	
-	/* BeaconRecv factory */
-	
-	/**
-	 * BeaconRecv factory. Create a BeaconRecv for UDP
-	 * @return
-	 */
-	public static BeaconRecvUDP loopPacketForUDP(){
-		return new BeaconRecvUDP(BeaconSenderUDP.initUDP() , "");
-	}
-	
-
-
-
+    public void dispose(){
+        stopRecv();
+        socket.close();
+    }
 }
