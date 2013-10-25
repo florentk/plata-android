@@ -56,39 +56,30 @@ public class CMOManagement implements BeaconRecvListener {
         new Timer().schedule(new RemoveExpiredEntry() , 0, CHECK_EXPIRED_ENTRY_INTERVAL);
 	}
 
-    private void notifyListenerChanged(CMOTableEntry cmo){
-		//Log.i("CMOManagement", "entry_chaged: " + cmo);
-		
-		//notify the listerners
-		for (CMOTableListener l : listerners)
-			l.tableChanged(cmo);
-	}
-	
-	private void notifyListenerRemove(CMOTableEntry cmo){
-        //Log.i("CMOManagement", "entry_removed: "+cmo);
-		
-		//notify the listerners
-		for (CMOTableListener l : listerners)
-			l.tableCMORemoved(cmo);		
-	}	
-	
-	private void notifyListenerAdd(CMOTableEntry cmo){
-        //Log.i("CMOManagement", "entry_added: "+cmo);
-		
-		//notify the listerners
-		for (CMOTableListener l : listerners)
-			l.tableCMOAdded(cmo);		
-	}
-
 	@Override
 	public void cmoStatChanged(CMOState newStat) {
         Log.i("CMOManagement", "cmoStatChanged Thread : " + Thread.currentThread().getId());
             Message msg = Message.obtain();
             msg.what = TYPE_MSG_TABLE_CHANGED;
             msg.obj = newStat;
+            //call updateTable in the GUI Thread
             mListenerHandler.sendMessage(msg);
 	}
 
+    class RemoveExpiredEntry extends TimerTask{
+
+        public void run() {
+            Message msg = Message.obtain();
+            //call deleteExpiredEntry in the GUI Thread
+            mListenerHandler.sendEmptyMessage(TYPE_MSG_DELETE_EXPIRED);
+        }
+    }
+
+    /**
+     * Use message passing to call listener in the GUI thread (imposed by Android)
+     * instead BeaconRecv thread.
+     * @param msg
+     */
     private void _handleMessage(Message msg) {
         Log.i("CMOManagement", "_handleMessage Thread : " + Thread.currentThread().getId());
         switch(msg.what) {
@@ -157,7 +148,30 @@ public class CMOManagement implements BeaconRecvListener {
             notifyListenerRemove(entry);
         }
 	}
-	
+
+    private void notifyListenerChanged(CMOTableEntry cmo){
+        //Log.i("CMOManagement", "entry_chaged: " + cmo);
+
+        //notify the listerners
+        for (CMOTableListener l : listerners)
+            l.tableChanged(cmo);
+    }
+
+    private void notifyListenerRemove(CMOTableEntry cmo){
+        //Log.i("CMOManagement", "entry_removed: "+cmo);
+
+        //notify the listerners
+        for (CMOTableListener l : listerners)
+            l.tableCMORemoved(cmo);
+    }
+
+    private void notifyListenerAdd(CMOTableEntry cmo){
+        //Log.i("CMOManagement", "entry_added: "+cmo);
+
+        //notify the listerners
+        for (CMOTableListener l : listerners)
+            l.tableCMOAdded(cmo);
+    }
 
 	public Collection<CMOTableEntry> getTable() {
 		return new ArrayList<CMOTableEntry>(table.values());
@@ -181,47 +195,5 @@ public class CMOManagement implements BeaconRecvListener {
 	
 	public void removeListener(CMOTableListener l){
 		listerners.remove(l);
-	}	
-	
-	class RemoveExpiredEntry extends TimerTask{
-
-		public void run() {
-            Message msg = Message.obtain();
-            mListenerHandler.sendEmptyMessage(TYPE_MSG_DELETE_EXPIRED);
-		}
 	}
-
-	/*public static void main(String[] args) throws Exception {
-		
-
-		org.apache.log4j.BasicConfigurator.configure();
-		logger.setLevel(org.apache.log4j.Level.DEBUG);
-		
-		BeaconRecvEthernet recv = BeaconRecvEthernet.loopPacketFromDevice(args[0]);
-
-		
-		CMOManagement m = new CMOManagement();
-		
-		m.addListener(new CMOTableListener() {
-			@Override
-			public void tableChanged(CMOTableEntry cmo) {
-				System.out.println("Change : " + cmo);
-			}
-			
-			public void tableCMORemoved(CMOTableEntry cmo) {
-				System.out.println("Remove : " + cmo);
-			}
-			
-			public void tableCMOAdded(CMOTableEntry cmo) {
-				System.out.println("Add : " + cmo);
-			}		
-		});		
-		
-		recv.addListener(m);
-		recv.start();
-		recv.join();
-	}
-
-*/
-
 }

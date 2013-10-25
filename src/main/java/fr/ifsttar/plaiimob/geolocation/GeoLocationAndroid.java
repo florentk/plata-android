@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.os.SystemClock;
 
 /**
+ * Geolocation implementation for Android. Allow to use GPS receiver in a Android device
+ *
  * Created by florent on 14/10/13.
  */
 public class GeoLocationAndroid extends Geolocation {
@@ -20,12 +22,9 @@ public class GeoLocationAndroid extends Geolocation {
 
     private LocationListener locationListener = new LocationListener() {
         public void onLocationChanged(Location l) {
-            //listener already call after removeUpdate
-
             setCurrentPos(new WGS84(l.getLongitude(),l.getLatitude(),l.getAltitude()));
             setCurrentSpeed((double)l.getSpeed());
             setCurrentTrack((double)l.getBearing());
-
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {}

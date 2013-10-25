@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="testArray">
+        <item>Car</item>
+        <item>Truck</item>
+        <item>Bus</item>
+        <item>Motorbike</item>
+        <item>Walker</item>
+        <item>Bike</item>
+        <item>Spot</item>
+    </array>
+</resources>

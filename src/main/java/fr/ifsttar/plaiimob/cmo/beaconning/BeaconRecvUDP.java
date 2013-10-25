@@ -10,8 +10,7 @@ import fr.ifsttar.plaiimob.cmo.beaconning.packet.*;
 
 
 /**
- * 
- * JpcapCaptor (raw Ethernet) ----> BeaconRecv ----|CMOState|----> CMOStatListener
+ * Receive CMO stat in a UDP packet
  * 
  * @author Florent Kaisser <florent.kaisser@free.fr>
  *

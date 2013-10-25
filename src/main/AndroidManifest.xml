@@ -19,7 +19,7 @@
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
 
     <uses-sdk
-        android:minSdkVersion="4"
+        android:minSdkVersion="11"
         android:targetSdkVersion="16" />
 
     <application

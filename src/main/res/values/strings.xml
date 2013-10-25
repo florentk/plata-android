@@ -9,4 +9,5 @@
     <string name="action_neighborhood">Show Neighborhood</string>
     <string name="action_map">Show Map</string>
     <string name="action_compass">Show Compass</string>
+    <string name="title_choose_cmotype">Who are you?</string>
 </resources>

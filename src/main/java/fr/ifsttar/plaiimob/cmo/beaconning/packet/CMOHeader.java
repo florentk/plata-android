@@ -12,7 +12,9 @@ import java.util.Collections;
  * @assoc - - - ByteArrayConvert
  */
 public class CMOHeader {	
-	
+
+    public static final short CMO_TYPE_UNDEFINED = 0x0000;
+
 	//CMO with energy sufficient
 	public static final short CMO_TYPE_CAR = 0x0001;
 	public static final short CMO_TYPE_TRUCK = 0x0002;

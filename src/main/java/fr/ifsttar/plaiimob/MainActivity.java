@@ -1,7 +1,10 @@
 package fr.ifsttar.plaiimob;
 
+import android.app.AlertDialog;
+import android.app.DialogFragment;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -38,6 +41,7 @@ import fr.ifsttar.plaiimob.cmo.dashboard.DashboardListener;
 import fr.ifsttar.plaiimob.cmo.management.CMOManagement;
 import fr.ifsttar.plaiimob.cmo.management.CMOTableEntry;
 import fr.ifsttar.plaiimob.cmo.management.CMOTableListener;
+import fr.ifsttar.plaiimob.cmo.utils.Physics;
 import fr.ifsttar.plaiimob.geolocation.GeoLocationAndroid;
 import fr.ifsttar.plaiimob.geolocation.GeolocationListener;
 import fr.ifsttar.plaiimob.geolocation.WGS84;
@@ -52,50 +56,71 @@ public class MainActivity extends Activity {
 
     private final DecimalFormat df = new DecimalFormat();
 
+    private boolean initialized = false;
     private BeaconRecv recv;
     private BeaconSender sender;
     private GeoLocationAndroid geo;
+    private short cmoType = CMOHeader.CMO_TYPE_UNDEFINED;
 
     ////////////////////////////////////////////////////////////////////////////////
     // Events processing
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-        df.setMaximumFractionDigits(5);
+        df.setMaximumFractionDigits(2);
 
-        //////////////////////
-        //init backend
-        String cmoName = generateCmoName();
+        if(savedInstanceState != null)
+            this.cmoType = savedInstanceState.getShort("cmoType",CMOHeader.CMO_TYPE_UNDEFINED);
 
-        this.geo = initGeolocation((LocationManager)getSystemService(Context.LOCATION_SERVICE));
-        this.sender = initBeaconSender();
-        this.recv = initBeaconRecv(cmoName);
+        if(cmoType == CMOHeader.CMO_TYPE_UNDEFINED){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.title_choose_cmotype);
+            builder.setItems(R.array.testArray, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which) {
+                        case 0:
+                            cmoType = CMOHeader.CMO_TYPE_CAR;
+                            break;
+                        case 1:
+                            cmoType =  CMOHeader.CMO_TYPE_TRUCK;
+                            break;
+                        case 2:
+                            cmoType =  CMOHeader.CMO_TYPE_BUS;
+                            break;
+                        case 3:
+                            cmoType =  CMOHeader.CMO_TYPE_MOTORBIKE;
+                            break;
+                        case 4:
+                            cmoType =  CMOHeader.CMO_TYPE_WALKER;
+                            break;
+                        case 5:
+                            cmoType =  CMOHeader.CMO_TYPE_BIKE;
+                            break;
+                        case 6:
+                            cmoType =  CMOHeader.CMO_TYPE_SPOT;
+                            break;
+                    }
+                    initialization(generateCmoName());
+                }
+            });
+            builder.show();
+        }else {
+            initialization(generateCmoName());
+        }
+    }
 
-        initGenerator(sender, geo, cmoName);
-        initForwarder(recv,sender);
-
-        CMOManagement cmoManagement = initCMOManager(recv);
-        //////////////////////
-
-        //////////////////////
-        //init GUI
-        initAlertView(cmoManagement, geo);
-        initBikeView(cmoManagement, geo);
-        initMapView(cmoManagement, geo);
-        //////////////////////
-
-        //start trace
-        geo.startTrace(trace,300);
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putShort("cmoType", cmoType);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        geo.dispose();
-        recv.dispose();
-        sender.dispose();
+        dispose();
     }
 
     @Override
@@ -135,6 +160,42 @@ public class MainActivity extends Activity {
     // end of event processing
     ////////////////////////////////////////////////////////////////////////////////
 
+    private void initialization(String cmoName){
+        //////////////////////
+        //init backend
+        this.geo = initGeolocation((LocationManager)getSystemService(Context.LOCATION_SERVICE));
+        this.sender = initBeaconSender();
+        this.recv = initBeaconRecv(cmoName);
+
+        initGenerator(sender, geo, cmoName, cmoType);
+        initForwarder(recv,sender);
+
+        CMOManagement cmoManagement = initCMOManager(recv);
+        //////////////////////
+
+        //////////////////////
+        //init GUI
+        initAlertView(cmoManagement, geo);
+        initBikeView(cmoManagement, geo, cmoType);
+        initMapView(cmoManagement, geo, cmoType);
+        //////////////////////
+
+        //start trace
+        geo.startTrace(trace,300);
+
+        this.initialized = true;
+    }
+
+    private void dispose() {
+        if(initialized){
+            geo.dispose();
+            recv.dispose();
+            sender.dispose();
+            initialized = false;
+        }
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////
     // GUI support
     /*private void setMyPos(String pos) {
@@ -149,14 +210,15 @@ public class MainActivity extends Activity {
         poseValue.setText(neighbour);
     }*/
 
-    private void alertUpdate(CrossingCMO crossingCMO){
+    private void alertUpdate(CrossingCMO crossingCMO, GeoLocationAndroid geolocation){
         TextView txt = (TextView) findViewById(R.id.textAlert);
         ImageView img = (ImageView) findViewById(R.id.imageAlert);
 
         switch(crossingCMO.getDecision()){
             case CrossingCMO.DECISION_NONE:
-                txt.setVisibility(View.INVISIBLE);
+                txt.setVisibility(View.VISIBLE);
                 img.setVisibility(View.INVISIBLE);
+                txt.setText(df.format(geolocation.getCurrentSpeed()) + " m/s");
                 break;
             case CrossingCMO.DECISION_WARNING:
                 txt.setVisibility(View.VISIBLE);
@@ -208,6 +270,7 @@ public class MainActivity extends Activity {
     private void updateNeighborItem(
             CMOManagement cmoManagement,
             GeoLocationAndroid geolocation,
+            short cmoType,
             ItemizedIconOverlay<OverlayItem> overlayNeighborItem)
     {
         Collection<CMOTableEntry> ns = cmoManagement.getTable();
@@ -224,7 +287,7 @@ public class MainActivity extends Activity {
         }
 
         addMarkerResId(overlayNeighborItem,
-                getResourceFromCMOId((short) 0),
+                getResourceFromCMOId(cmoType),
                 new GeoPoint(myPos.latitude(),myPos.longitude()),
                 "Me"
         );
@@ -233,7 +296,7 @@ public class MainActivity extends Activity {
 
     }
 
-    private void initAlertView(CMOManagement cmoManagement, GeoLocationAndroid geolocation) {
+    private void initAlertView(CMOManagement cmoManagement, final GeoLocationAndroid geolocation) {
         final Dashboard db = new Dashboard();
         final CrossingCMO crossingCMO = new CrossingCMO(geolocation,cmoManagement);
 
@@ -243,12 +306,16 @@ public class MainActivity extends Activity {
         db.addListener(new DashboardListener() {
             @Override
             public void dashboardUpdate() {
-                alertUpdate(crossingCMO);
+                alertUpdate(crossingCMO,geolocation);
             }
         });
     }
 
-    private void initMapView(final CMOManagement cmoManagement, final GeoLocationAndroid geolocation) {
+    private void initMapView(
+            final CMOManagement cmoManagement,
+            final GeoLocationAndroid geolocation,
+            final short cmoType
+    ) {
         MapView mMapView = (MapView) findViewById(R.id.mapview);
         mMapView.setTileSource(TileSourceFactory.MAPNIK);
         mMapView.setBuiltInZoomControls(true);
@@ -273,24 +340,24 @@ public class MainActivity extends Activity {
         cmoManagement.addListener(new CMOTableListener() {
             @Override
             public void tableChanged(CMOTableEntry table) {
-                updateNeighborItem(cmoManagement,geolocation,overlayNeighborItem);
+                updateNeighborItem(cmoManagement,geolocation,cmoType,overlayNeighborItem);
             }
 
             @Override
             public void tableCMORemoved(CMOTableEntry table) {
-                updateNeighborItem(cmoManagement,geolocation,overlayNeighborItem);
+                updateNeighborItem(cmoManagement,geolocation,cmoType,overlayNeighborItem);
             }
 
             @Override
             public void tableCMOAdded(CMOTableEntry table) {
-                updateNeighborItem(cmoManagement,geolocation,overlayNeighborItem);
+                updateNeighborItem(cmoManagement,geolocation,cmoType,overlayNeighborItem);
             }
         });
 
         geolocation.addPositionListener(new GeolocationListener() {
             @Override
             public void positionChanged(WGS84 position, Double speed, Double track, int time) {
-                updateNeighborItem(cmoManagement, geolocation, overlayNeighborItem);
+                updateNeighborItem(cmoManagement, geolocation,cmoType, overlayNeighborItem);
                 MapView mMapView = (MapView) findViewById(R.id.mapview);
                 WGS84 myPos = geolocation.getCurrentPos();
                 mMapView.getController().setCenter(new GeoPoint(myPos.latitude(),myPos.longitude()));
@@ -301,9 +368,10 @@ public class MainActivity extends Activity {
 
     }
 
-    private void initBikeView(CMOManagement cmoManagement, GeoLocationAndroid geolocation) {
+    private void initBikeView(CMOManagement cmoManagement, GeoLocationAndroid geolocation, short cmoType) {
         BikeView bike = (BikeView) findViewById(R.id.bikeView);
 
+        bike.setCMOType(cmoType);
         bike.setCMOManagement(cmoManagement);
         bike.setLocationManager(geolocation);
     }
@@ -313,12 +381,15 @@ public class MainActivity extends Activity {
 
     ////////////////////////////////////////////////////////////////////////////////
     // Backend initialisation
+
     private BeaconGenerator initGenerator(
             BeaconSender beaconSender,
             final GeoLocationAndroid geo,
-            String cmoName)
+            String cmoName,
+            short cmoType
+            )
     {
-        final BeaconGenerator gen = new BeaconGenerator(beaconSender, cmoName, CMOHeader.CMO_TYPE_CAR);
+        final BeaconGenerator gen = new BeaconGenerator(beaconSender, cmoName, cmoType);
         geo.addPositionListener(new GeolocationListener() {
             @Override
             public void positionChanged(WGS84 position, Double speed, Double track, int time) {

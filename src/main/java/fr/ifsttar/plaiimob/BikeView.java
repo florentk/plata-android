@@ -19,6 +19,7 @@ import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.Date;
 
+import fr.ifsttar.plaiimob.cmo.beaconning.packet.CMOHeader;
 import fr.ifsttar.plaiimob.cmo.management.CMOManagement;
 import fr.ifsttar.plaiimob.cmo.management.CMOTableEntry;
 import fr.ifsttar.plaiimob.cmo.management.CMOTableListener;
@@ -33,10 +34,10 @@ public class BikeView  extends View implements GeolocationListener {
 
     final private Paint paint;
     //final private Bitmap bicycle;
-    final private Bitmap car;
     final private DecimalFormat df;
     final int m;
 
+    private Bitmap car;
     private CMOManagement cmoManagement = null;
     private Geolocation geoLocation = null;
 
@@ -52,7 +53,7 @@ public class BikeView  extends View implements GeolocationListener {
         df.setMaximumFractionDigits(0);
 
         //bicycle = BitmapFactory.decodeResource(getResources(), R.drawable.bike);
-        car = BitmapFactory.decodeResource(getResources(), R.drawable.car);
+        setCMOType((short)0);
 
         Rect bText = new Rect();
         paint.getTextBounds("123.45 m",0,8,bText);
@@ -87,6 +88,10 @@ public class BikeView  extends View implements GeolocationListener {
         geoLocation.addPositionListener(this);
 
        }
+
+    public void setCMOType(short cmoType){
+        car = BitmapFactory.decodeResource(getResources(), MainActivity.getResourceFromCMOId(cmoType));
+    }
 
     @Override
     public void positionChanged(WGS84 position, Double speed, Double track, int time) {

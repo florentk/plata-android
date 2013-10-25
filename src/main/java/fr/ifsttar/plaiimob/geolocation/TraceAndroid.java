@@ -9,6 +9,12 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.ifsttar.plaiimob.cmo.utils.Physics;
+
+/**
+ * Allow to play geolocation trace for Android
+ */
+
 public class TraceAndroid implements Runnable {
 
 	
@@ -46,6 +52,12 @@ public class TraceAndroid implements Runnable {
 		return a;
 	}
 
+    public double computeSpeed(double longi1, double lati1, double longi2, double lati2){
+        double dx = longi2-longi1;
+        double dy = lati2-lati1;
+        return (Physics.cartesianDistance(dx,dy) / waitTime) * 1000.0;
+    }
+
     static  private WGS84 parsePos(String pos){
 		pos.trim();
 		
@@ -71,12 +83,16 @@ public class TraceAndroid implements Runnable {
 		for (String spos:tokens) {
 			WGS84 pos = parsePos(spos);
 			double track = 0;
+            double speed = 0;
 			
-			if(oldPos!=null)
+			if(oldPos!=null){
 				track = computeTrack(oldPos.longitude(), oldPos.latitude(), 
 						pos.longitude(), pos.latitude());
+                speed = computeSpeed(oldPos.longitude(), oldPos.latitude(),
+                        pos.longitude(), pos.latitude());
+            }
 
-			l.add(new GpsData(t,pos,0.0,track));
+			l.add(new GpsData(t,pos,speed,track));
 			t+=waitTime;
 			oldPos = pos;
 		}
@@ -93,7 +109,12 @@ public class TraceAndroid implements Runnable {
                     try {
                         WGS84 pos = data.getPosition();
 
-                        geo.setTestPosition(pos.longitude(),pos.latitude(),data.getTrack().floatValue(),0.0f);
+                        geo.setTestPosition(
+                                pos.longitude(),
+                                pos.latitude(),
+                                data.getTrack().floatValue(),
+                                data.getSpeed().floatValue()
+                        );
 
                         if(waitTime!=0) Thread.sleep(waitTime);
 

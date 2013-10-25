@@ -8,7 +8,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-
+/**
+ * Send CMO stat in a UDP packet
+ */
 public class BeaconSenderUDP implements BeaconSender {
 	/** constants */
 	public static final int DEFAULT_PORT = 50123;
