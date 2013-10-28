@@ -4,6 +4,12 @@
         android:orderInCategory="100"
         android:showAsAction="never" />
 
+
+    <item android:id="@+id/action_exit"
+          android:title="@string/action_exit"
+          android:orderInCategory="100"
+          android:showAsAction="never" />
+
     <item android:id="@+id/action_map"
           android:title="@string/action_map"
           android:orderInCategory="100"

@@ -84,24 +84,30 @@ public class MainActivity extends Activity {
                             cmoType = CMOHeader.CMO_TYPE_CAR;
                             break;
                         case 1:
-                            cmoType =  CMOHeader.CMO_TYPE_TRUCK;
+                            cmoType = CMOHeader.CMO_TYPE_TRUCK;
                             break;
                         case 2:
-                            cmoType =  CMOHeader.CMO_TYPE_BUS;
+                            cmoType = CMOHeader.CMO_TYPE_BUS;
                             break;
                         case 3:
-                            cmoType =  CMOHeader.CMO_TYPE_MOTORBIKE;
+                            cmoType = CMOHeader.CMO_TYPE_MOTORBIKE;
                             break;
                         case 4:
-                            cmoType =  CMOHeader.CMO_TYPE_WALKER;
+                            cmoType = CMOHeader.CMO_TYPE_WALKER;
                             break;
                         case 5:
-                            cmoType =  CMOHeader.CMO_TYPE_BIKE;
+                            cmoType = CMOHeader.CMO_TYPE_BIKE;
                             break;
                         case 6:
-                            cmoType =  CMOHeader.CMO_TYPE_SPOT;
+                            cmoType = CMOHeader.CMO_TYPE_SPOT;
                             break;
                     }
+                    initialization(generateCmoName());
+                }
+            });
+            builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialogInterface) {
                     initialization(generateCmoName());
                 }
             });
@@ -147,9 +153,12 @@ public class MainActivity extends Activity {
                 findViewById(R.id.mapview).setVisibility(View.INVISIBLE);
                 break;
 
+            case R.id.action_exit:
+                finish();
+                break;
+
             case R.id.action_settings:
-                geo.stopTrace();
-                recv.stopRecv();
+
                 break;
 
             default:
@@ -191,10 +200,15 @@ public class MainActivity extends Activity {
             geo.dispose();
             recv.dispose();
             sender.dispose();
+
+            //fix bug http://code.google.com/p/osmdroid/issues/detail?id=265
+            final MapView mMapView = (MapView) findViewById(R.id.mapview);
+            mMapView.getTileProvider().clearTileCache();
+            System.gc();
+
             initialized = false;
         }
     }
-
 
     ////////////////////////////////////////////////////////////////////////////////
     // GUI support
