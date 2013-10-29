@@ -41,7 +41,10 @@ import fr.ifsttar.cmo.management.CMOManagement;
 import fr.ifsttar.cmo.management.CMOTableEntry;
 import fr.ifsttar.cmo.management.CMOTableListener;
 import fr.ifsttar.geolocation.GeoLocationAndroid;
+import fr.ifsttar.geolocation.Geolocation;
 import fr.ifsttar.geolocation.GeolocationListener;
+import fr.ifsttar.geolocation.GeolocationTrace;
+import fr.ifsttar.geolocation.GeolocationTraceAndroid;
 import fr.ifsttar.geolocation.WGS84;
 
 public class MainActivity extends Activity {
@@ -57,7 +60,7 @@ public class MainActivity extends Activity {
     private boolean initialized = false;
     private BeaconRecv recv;
     private BeaconSender sender;
-    private GeoLocationAndroid geo;
+    private Geolocation geo;
     private short cmoType = CMOHeader.CMO_TYPE_UNDEFINED;
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -170,7 +173,9 @@ public class MainActivity extends Activity {
     private void initialization(String cmoName){
         //////////////////////
         //init backend
-        this.geo = initGeolocation((LocationManager)getSystemService(Context.LOCATION_SERVICE));
+        final LocationManager loc = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        //this.geo = initGeolocation(loc);
+        this.geo = initGeolocationTrace(loc);
         this.sender = initBeaconSender();
         this.recv = initBeaconRecv(cmoName);
 
@@ -187,9 +192,6 @@ public class MainActivity extends Activity {
         initMapView(cmoManagement, geo, cmoType);
         //////////////////////
 
-        //start trace
-        geo.startTrace(trace,300);
-
         this.initialized = true;
     }
 
@@ -198,6 +200,7 @@ public class MainActivity extends Activity {
             geo.dispose();
             recv.dispose();
             sender.dispose();
+
 
             //fix bug http://code.google.com/p/osmdroid/issues/detail?id=265
             final MapView mMapView = (MapView) findViewById(R.id.mapview);
@@ -222,7 +225,7 @@ public class MainActivity extends Activity {
         poseValue.setText(neighbour);
     }*/
 
-    private void alertUpdate(CrossingCMO crossingCMO, GeoLocationAndroid geolocation){
+    private void alertUpdate(CrossingCMO crossingCMO, Geolocation geolocation){
         TextView txt = (TextView) findViewById(R.id.textAlert);
         ImageView img = (ImageView) findViewById(R.id.imageAlert);
 
@@ -281,7 +284,7 @@ public class MainActivity extends Activity {
 
     private void updateNeighborItem(
             CMOManagement cmoManagement,
-            GeoLocationAndroid geolocation,
+            Geolocation geolocation,
             short cmoType,
             ItemizedIconOverlay<OverlayItem> overlayNeighborItem)
     {
@@ -308,7 +311,7 @@ public class MainActivity extends Activity {
 
     }
 
-    private void initAlertView(CMOManagement cmoManagement, final GeoLocationAndroid geolocation) {
+    private void initAlertView(CMOManagement cmoManagement, final Geolocation geolocation) {
         final Dashboard db = new Dashboard();
         final CrossingCMO crossingCMO = new CrossingCMO(geolocation,cmoManagement);
 
@@ -325,7 +328,7 @@ public class MainActivity extends Activity {
 
     private void initMapView(
             final CMOManagement cmoManagement,
-            final GeoLocationAndroid geolocation,
+            final Geolocation geolocation,
             final short cmoType
     ) {
         MapView mMapView = (MapView) findViewById(R.id.mapview);
@@ -380,7 +383,7 @@ public class MainActivity extends Activity {
 
     }
 
-    private void initBikeView(CMOManagement cmoManagement, GeoLocationAndroid geolocation, short cmoType) {
+    private void initBikeView(CMOManagement cmoManagement, Geolocation geolocation, short cmoType) {
         BikeView bike = (BikeView) findViewById(R.id.bikeView);
 
         bike.setCMOType(cmoType);
@@ -396,7 +399,7 @@ public class MainActivity extends Activity {
 
     private BeaconGenerator initGenerator(
             BeaconSender beaconSender,
-            final GeoLocationAndroid geo,
+            final Geolocation geo,
             String cmoName,
             short cmoType
             )
@@ -431,9 +434,17 @@ public class MainActivity extends Activity {
         bRecv.addListener(new BeaconForward(beaconSender));
     }
 
-    private GeoLocationAndroid initGeolocation(LocationManager locationManager) {
-        return  new GeoLocationAndroid(locationManager, true);
+    private Geolocation initGeolocation(LocationManager locationManager) {
+        return  new GeoLocationAndroid(locationManager);
      }
+
+    private Geolocation initGeolocationTrace(LocationManager locationManager) {
+        GeolocationTrace geoTrace = new GeolocationTraceAndroid(trace,300,locationManager);
+        geoTrace.startTrace();
+        return geoTrace;
+    }
+
+
     // end of backend initialisation
     ////////////////////////////////////////////////////////////////////////////////
 

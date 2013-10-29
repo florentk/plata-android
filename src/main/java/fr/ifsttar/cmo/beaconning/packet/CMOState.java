@@ -1,6 +1,6 @@
 package fr.ifsttar.cmo.beaconning.packet;
 
-import fr.ifsttar.cmo.utils.ByteArrayConvert;
+import fr.ifsttar.utils.ByteArrayConvert;
 
 
 /**

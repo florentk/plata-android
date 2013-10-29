@@ -1,11 +1,6 @@
 package fr.ifsttar.geolocation;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,22 +10,20 @@ import fr.ifsttar.utils.Physics;
  * Allow to play geolocation trace for Android
  */
 
-public class TraceAndroid implements Runnable {
+public class GeolocationTrace extends Geolocation implements Runnable {
 
-	
-	private final List<GpsData> positions; 
-	private final int waitTime;
-    private final GeoLocationAndroid geo;
+
+    protected final List<GpsData> positions;
+	protected final int waitTime;
 
     private boolean actif = true;
 
-    public TraceAndroid(GeoLocationAndroid geo, String coordinates, int waitTime) {
+    public GeolocationTrace(String coordinates, int waitTime) {
 		this.waitTime=waitTime;
-        this.geo=geo;
 		positions = parse(coordinates);
 	}
 	
-	static public double computeTrack(double longi1, double lati1, double longi2, double lati2){
+	static private double computeTrack(double longi1, double lati1, double longi2, double lati2){
 		double dx = longi2-longi1;
 		double dy = lati2-lati1;
 		double a = 0;
@@ -52,7 +45,7 @@ public class TraceAndroid implements Runnable {
 		return a;
 	}
 
-    public double computeSpeed(double longi1, double lati1, double longi2, double lati2){
+    private double computeSpeed(double longi1, double lati1, double longi2, double lati2){
         double dx = longi2-longi1;
         double dy = lati2-lati1;
         return (Physics.cartesianDistance(dx,dy) / waitTime) * 1000.0;
@@ -100,6 +93,12 @@ public class TraceAndroid implements Runnable {
 		return l;
 	}
 
+    protected void setTestPosition(double longitude, double latitude, float bearing, float speed){
+        setCurrentPos(new WGS84(longitude,latitude,0.0));
+        setCurrentSpeed((double)speed);
+        setCurrentTrack((double)bearing);
+    }
+
     	@Override
         public void run() {
             //super.run();
@@ -109,7 +108,7 @@ public class TraceAndroid implements Runnable {
                     try {
                         WGS84 pos = data.getPosition();
 
-                        geo.setTestPosition(
+                        setTestPosition(
                                 pos.longitude(),
                                 pos.latitude(),
                                 data.getTrack().floatValue(),
@@ -125,15 +124,26 @@ public class TraceAndroid implements Runnable {
             }
         }
 
+
+
+    public void startTrace(){
+        new Thread(this).start();
+    }
+
 	public void stopTrace(){
         actif = false;
     }
+
+    @Override
+    public void dispose() {
+        stopTrace();
+    }
 	
-	/*static public TraceAndroid traceFromFile(String path, int waitTime) throws FileNotFoundException, IOException {
+	/*static public GeolocationTraceAndroid traceFromFile(String path, int waitTime) throws FileNotFoundException, IOException {
 		return traceFromInput(new FileReader(new File(path)),waitTime);
 	}
 	
-	static public TraceAndroid traceFromInput(InputStreamReader i, int waitTime) throws IOException{
+	static public GeolocationTraceAndroid traceFromInput(InputStreamReader i, int waitTime) throws IOException{
 		BufferedReader br = new BufferedReader(i);
 	    try {
 	        StringBuilder sb = new StringBuilder();
@@ -144,7 +154,7 @@ public class TraceAndroid implements Runnable {
 	            sb.append(' ');
 	            line = br.readLine();
 	        }
-	        return new TraceAndroid(sb.toString(),waitTime);
+	        return new GeolocationTraceAndroid(sb.toString(),waitTime);
 	    
 		} finally {
 	        br.close();
@@ -155,7 +165,7 @@ public class TraceAndroid implements Runnable {
 		if(args.length == 0)
 			return;
 		
-		TraceAndroid t=null;
+		GeolocationTraceAndroid t=null;
 		
 		if(args.length == 2)
 			t = traceFromFile(args[0],Integer.parseInt(args[1]));
