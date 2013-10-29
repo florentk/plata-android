@@ -7,25 +7,18 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Bundle;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
 
 import java.text.DecimalFormat;
 import java.util.Collection;
-import java.util.Date;
 
-import fr.ifsttar.plaiimob.cmo.beaconning.packet.CMOHeader;
-import fr.ifsttar.plaiimob.cmo.management.CMOManagement;
-import fr.ifsttar.plaiimob.cmo.management.CMOTableEntry;
-import fr.ifsttar.plaiimob.cmo.management.CMOTableListener;
-import fr.ifsttar.plaiimob.geolocation.Geolocation;
-import fr.ifsttar.plaiimob.geolocation.GeolocationListener;
-import fr.ifsttar.plaiimob.geolocation.WGS84;
+import fr.ifsttar.cmo.management.CMOManagement;
+import fr.ifsttar.cmo.management.CMOTableEntry;
+import fr.ifsttar.cmo.management.CMOTableListener;
+import fr.ifsttar.geolocation.Geolocation;
+import fr.ifsttar.geolocation.GeolocationListener;
+import fr.ifsttar.geolocation.WGS84;
 
 /**
  * Created by florent on 10/10/13.

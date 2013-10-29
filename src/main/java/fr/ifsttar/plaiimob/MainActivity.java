@@ -1,7 +1,6 @@
 package fr.ifsttar.plaiimob;
 
 import android.app.AlertDialog;
-import android.app.DialogFragment;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -28,23 +27,22 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import fr.ifsttar.plaiimob.cmo.beaconning.BeaconForward;
-import fr.ifsttar.plaiimob.cmo.beaconning.BeaconGenerator;
-import fr.ifsttar.plaiimob.cmo.beaconning.BeaconRecv;
-import fr.ifsttar.plaiimob.cmo.beaconning.BeaconRecvUDP;
-import fr.ifsttar.plaiimob.cmo.beaconning.BeaconSender;
-import fr.ifsttar.plaiimob.cmo.beaconning.BeaconSenderUDP;
-import fr.ifsttar.plaiimob.cmo.beaconning.packet.CMOHeader;
-import fr.ifsttar.plaiimob.cmo.dashboard.CrossingCMO;
-import fr.ifsttar.plaiimob.cmo.dashboard.Dashboard;
-import fr.ifsttar.plaiimob.cmo.dashboard.DashboardListener;
-import fr.ifsttar.plaiimob.cmo.management.CMOManagement;
-import fr.ifsttar.plaiimob.cmo.management.CMOTableEntry;
-import fr.ifsttar.plaiimob.cmo.management.CMOTableListener;
-import fr.ifsttar.plaiimob.cmo.utils.Physics;
-import fr.ifsttar.plaiimob.geolocation.GeoLocationAndroid;
-import fr.ifsttar.plaiimob.geolocation.GeolocationListener;
-import fr.ifsttar.plaiimob.geolocation.WGS84;
+import fr.ifsttar.cmo.beaconning.BeaconForward;
+import fr.ifsttar.cmo.beaconning.BeaconGenerator;
+import fr.ifsttar.cmo.beaconning.BeaconRecv;
+import fr.ifsttar.cmo.beaconning.BeaconRecvUDP;
+import fr.ifsttar.cmo.beaconning.BeaconSender;
+import fr.ifsttar.cmo.beaconning.BeaconSenderUDP;
+import fr.ifsttar.cmo.beaconning.packet.CMOHeader;
+import fr.ifsttar.cmo.dashboard.CrossingCMO;
+import fr.ifsttar.cmo.dashboard.Dashboard;
+import fr.ifsttar.cmo.dashboard.DashboardListener;
+import fr.ifsttar.cmo.management.CMOManagement;
+import fr.ifsttar.cmo.management.CMOTableEntry;
+import fr.ifsttar.cmo.management.CMOTableListener;
+import fr.ifsttar.geolocation.GeoLocationAndroid;
+import fr.ifsttar.geolocation.GeolocationListener;
+import fr.ifsttar.geolocation.WGS84;
 
 public class MainActivity extends Activity {
 
