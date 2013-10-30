@@ -43,6 +43,7 @@ public class CMOManagement implements BeaconRecvListener {
     private final CMOTable table = new CMOTable();
 	private final Collection<CMOTableListener> listerners = new ArrayList<CMOTableListener>();
     private final Handler mListenerHandler;
+    private final Timer timerExpiredEntry = new Timer();
 
 
     public CMOManagement(){
@@ -53,7 +54,7 @@ public class CMOManagement implements BeaconRecvListener {
             }
         };
 
-        new Timer().schedule(new RemoveExpiredEntry() , 0, CHECK_EXPIRED_ENTRY_INTERVAL);
+        timerExpiredEntry.schedule(new RemoveExpiredEntry() , 0, CHECK_EXPIRED_ENTRY_INTERVAL);
 	}
 
 	@Override
@@ -196,4 +197,8 @@ public class CMOManagement implements BeaconRecvListener {
 	public void removeListener(CMOTableListener l){
 		listerners.remove(l);
 	}
+
+    public void dispose(){
+        timerExpiredEntry.cancel();
+    }
 }
