@@ -7,6 +7,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 /**
  * Allow to play geolocation trace for Android
  */
@@ -73,11 +80,11 @@ public class GeolocationTraceAndroid extends GeolocationTrace {
     }
 
 	
-	/*static public GeolocationTraceAndroid traceFromFile(String path, int waitTime) throws FileNotFoundException, IOException {
-		return traceFromInput(new FileReader(new File(path)),waitTime);
+	static public GeolocationTraceAndroid traceFromFile(String path, int waitTime, LocationManager locationManager) throws FileNotFoundException, IOException {
+		return traceFromInput(new FileReader(new File(path)),waitTime,locationManager);
 	}
 	
-	static public GeolocationTraceAndroid traceFromInput(InputStreamReader i, int waitTime) throws IOException{
+	static public GeolocationTraceAndroid traceFromInput(InputStreamReader i, int waitTime, LocationManager locationManager) throws IOException{
 		BufferedReader br = new BufferedReader(i);
 	    try {
 	        StringBuilder sb = new StringBuilder();
@@ -88,13 +95,13 @@ public class GeolocationTraceAndroid extends GeolocationTrace {
 	            sb.append(' ');
 	            line = br.readLine();
 	        }
-	        return new GeolocationTraceAndroid(sb.toString(),waitTime);
+	        return new GeolocationTraceAndroid(sb.toString(),waitTime,locationManager);
 	    
 		} finally {
 	        br.close();
 	    }
 	}
-
+/*
 	public static void main (String[] args) throws Exception{
 		if(args.length == 0)
 			return;

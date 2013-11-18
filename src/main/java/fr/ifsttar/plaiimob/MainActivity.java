@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 import fr.ifsttar.cmo.beaconning.BeaconForward;
 import fr.ifsttar.cmo.beaconning.BeaconGenerator;
@@ -71,6 +70,7 @@ public class MainActivity extends Activity {
     public static final String BROAD_CAST_ADDR =  "10.0.0.255";
     public static final String NETWORK_NAME = "\"plaiimob\"";
     public static final String DEFAULT_NAME = "android";
+    public static final short DEFAULT_ZOOM = 17;
     public static final short MODE_MAP = 0;
     public static final short MODE_COMPASS = 1;
 
@@ -84,13 +84,18 @@ public class MainActivity extends Activity {
     private BeaconSender sender;
     private Geolocation geo;
     private CMOManagement cmoManagement;
+
+    /*Instance States*/
     private short cmoType = CMOHeader.CMO_TYPE_UNDEFINED;
     private short currentMode = MODE_MAP;
+    private short initialZoom = DEFAULT_ZOOM;
 
     ////////////////////////////////////////////////////////////////////////////////
     // Events processing
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
@@ -99,6 +104,7 @@ public class MainActivity extends Activity {
         if(savedInstanceState != null){
             this.cmoType = savedInstanceState.getShort("cmoType",CMOHeader.CMO_TYPE_UNDEFINED);
             this.currentMode = savedInstanceState.getShort("currentMode",MODE_MAP);
+            this.initialZoom = savedInstanceState.getShort("zoom",DEFAULT_ZOOM);
         }
 
         initWifi();
@@ -151,6 +157,7 @@ public class MainActivity extends Activity {
         super.onSaveInstanceState(outState);
         outState.putShort("cmoType", cmoType);
         outState.putShort("currentMode", currentMode);
+        outState.putShort("zoom", (short) mMapView.getZoomLevel());
     }
 
     @Override
@@ -217,7 +224,7 @@ public class MainActivity extends Activity {
         //init GUI
         initAlertView(cmoManagement, geo);
         initBikeView(cmoManagement, geo, cmoType);
-        initMapView(cmoManagement, geo, cmoType);
+        initMapView(cmoManagement, geo, cmoType, initialZoom);
         changeMode(currentMode);
         //////////////////////
 
@@ -335,31 +342,32 @@ public class MainActivity extends Activity {
         overlayNeighborItem.addItem(overlayItem);
     }
 
-    private void updateNeighborItem(
+    private void updateOverlay(
             CMOManagement cmoManagement,
             Geolocation geolocation,
             short cmoType,
-            ItemizedIconOverlay<OverlayItem> overlayNeighborItem)
+            ItemizedIconOverlay<OverlayItem> overlay)
     {
         Collection<CMOTableEntry> ns = cmoManagement.getTable();
         WGS84 myPos = geolocation.getCurrentPos();
 
-        overlayNeighborItem.removeAllItems();
+        overlay.removeAllItems();
 
         for (CMOTableEntry cmo : ns ) {
-            addMarkerResId(overlayNeighborItem,
+            addMarkerResId(overlay,
                     getResourceFromCMOId(cmo.getCmoType()),
                     new GeoPoint(cmo.getLatitude(),cmo.getLongitude()),
                     cmo.getCmoID()
            );
         }
 
-        addMarkerResId(overlayNeighborItem,
+        addMarkerResId(overlay,
                 getResourceFromCMOId(cmoType),
                 new GeoPoint(myPos.latitude(),myPos.longitude()),
                 "Me"
         );
 
+        mMapView.getController().setCenter(new GeoPoint(myPos.latitude(),myPos.longitude()));
         mMapView.invalidate();
 
     }
@@ -382,7 +390,8 @@ public class MainActivity extends Activity {
     private void initMapView(
             final CMOManagement cmoManagement,
             final Geolocation geolocation,
-            final short cmoType
+            final short cmoType,
+            final short zoom
     ) {
         final Context context = getApplicationContext();
         final IRegisterReceiver registerReceiver = new SimpleRegisterReceiver(context);
@@ -407,13 +416,13 @@ public class MainActivity extends Activity {
         mMapView.setTileSource(TileSourceFactory.MAPNIK);
         mMapView.setBuiltInZoomControls(true);
         MapController mMapController = mMapView.getController();
-        mMapController.setZoom(17);
+        mMapController.setZoom(zoom);
         GeoPoint gPt = new GeoPoint(50.60612721473346,3.129384328171011);
         mMapController.setCenter(gPt);
 
         layout.addView(mMapView);
 
-        final ItemizedIconOverlay<OverlayItem> overlayNeighborItem = new ItemizedIconOverlay<OverlayItem>(
+        final ItemizedIconOverlay<OverlayItem> overlay = new ItemizedIconOverlay<OverlayItem>(
                 getApplicationContext(),new ArrayList<OverlayItem>(),
                 new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
                     public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
@@ -424,31 +433,29 @@ public class MainActivity extends Activity {
                     }
                 });
 
-        mMapView.getOverlays().add(overlayNeighborItem);
+        mMapView.getOverlays().add(overlay);
 
         cmoManagement.addListener(new CMOTableListener() {
             @Override
             public void tableChanged(CMOTableEntry table) {
-                updateNeighborItem(cmoManagement,geolocation,cmoType,overlayNeighborItem);
+                updateOverlay(cmoManagement,geolocation,cmoType,overlay);
             }
 
             @Override
             public void tableCMORemoved(CMOTableEntry table) {
-                updateNeighborItem(cmoManagement,geolocation,cmoType,overlayNeighborItem);
+                updateOverlay(cmoManagement,geolocation,cmoType,overlay);
             }
 
             @Override
             public void tableCMOAdded(CMOTableEntry table) {
-                updateNeighborItem(cmoManagement,geolocation,cmoType,overlayNeighborItem);
+                updateOverlay(cmoManagement,geolocation,cmoType,overlay);
             }
         });
 
         geolocation.addPositionListener(new GeolocationListener() {
             @Override
             public void positionChanged(WGS84 position, Double speed, Double track, int time) {
-                updateNeighborItem(cmoManagement, geolocation,cmoType, overlayNeighborItem);
-                WGS84 myPos = geolocation.getCurrentPos();
-                mMapView.getController().setCenter(new GeoPoint(myPos.latitude(),myPos.longitude()));
+                updateOverlay(cmoManagement, geolocation,cmoType, overlay);
             }
         });
 
@@ -539,7 +546,16 @@ public class MainActivity extends Activity {
      }
 
     private Geolocation initGeolocationTrace(LocationManager locationManager) {
-        GeolocationTrace geoTrace = new GeolocationTraceAndroid(trace,300,locationManager);
+        GeolocationTrace geoTrace;
+
+        try {
+            //try to read trace from file
+            geoTrace = GeolocationTraceAndroid.traceFromFile("/sdcard/plaiimob/trace",300,locationManager);
+        } catch (IOException e) {
+            //default trace
+            geoTrace = new GeolocationTraceAndroid(trace,300,locationManager);
+        }
+
         geoTrace.startTrace();
         return geoTrace;
     }
