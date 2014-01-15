@@ -398,6 +398,8 @@ public class MainActivity extends Activity {
             final short zoom
     ) {
         final Context context = getApplicationContext();
+
+        /* Tests with specifics archives tiles
         final IRegisterReceiver registerReceiver = new SimpleRegisterReceiver(context);
         final ITileSource tileSource = new XYTileSource("Mapnik", ResourceProxy.string.mapnik, 1, 18, 256, ".png", "");
 
@@ -415,10 +417,10 @@ public class MainActivity extends Activity {
 
         MapTileFileArchiveProvider fileArchiveProvider = new MapTileFileArchiveProvider(registerReceiver, tileSource, archiveFiles);
         final MapTileProviderArray tileProviderArray = new MapTileProviderArray(tileSource, registerReceiver, new MapTileModuleProviderBase[] { fileArchiveProvider });
-
+*/
 
         FrameLayout layout = (FrameLayout) findViewById(R.id.mainView);
-        mMapView =  new MapView(context, 256, new DefaultResourceProxyImpl(context), tileProviderArray);/*(MapView) findViewById(R.id.mapview);*/
+        mMapView =  new MapView(context, 256, new DefaultResourceProxyImpl(context)/*, tileProviderArray*/);/*(MapView) findViewById(R.id.mapview);*/
         mMapView.setTileSource(TileSourceFactory.MAPNIK);
         mMapView.setBuiltInZoomControls(true);
         MapController mMapController = mMapView.getController();
