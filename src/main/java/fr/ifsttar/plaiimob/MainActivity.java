@@ -4,8 +4,10 @@ import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
+import android.net.DhcpInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -39,6 +41,7 @@ import org.osmdroid.views.overlay.OverlayItem;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -107,7 +110,9 @@ public class MainActivity extends Activity {
             this.initialZoom = savedInstanceState.getShort("zoom",DEFAULT_ZOOM);
         }
 
+
         initWifi();
+
 
         if(cmoType == CMOHeader.CMO_TYPE_UNDEFINED){
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -190,10 +195,6 @@ public class MainActivity extends Activity {
 
             case R.id.action_exit:
                 finish();
-                break;
-
-            case R.id.action_settings:
-
                 break;
 
             default:
@@ -481,10 +482,65 @@ public class MainActivity extends Activity {
     // end of GUI support
     ////////////////////////////////////////////////////////////////////////////////
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // Network support
+
+    private int getWifiNetworkId(){
+        final WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+
+        for (WifiConfiguration net : wifi.getConfiguredNetworks()){
+            if (net.SSID.compareTo(NETWORK_NAME)==0){
+                return net.networkId;
+            }
+        }
+        return -1;
+    }
+
+    private InetAddress getBroadcastAddress() throws IOException {
+        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        DhcpInfo dhcp = wifi.getDhcpInfo();
+
+        if(dhcp == null) {
+            return InetAddress.getByName(BROAD_CAST_ADDR);
+        }
+
+        int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
+        byte[] quads = new byte[4];
+        for (int k = 0; k < 4; k++)
+            quads[k] = (byte) (broadcast >> (k * 8));
+        return InetAddress.getByAddress(quads);
+    }
+
     private void initWifi(){
         final WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 
-        wifi.setWifiEnabled(true);
+        //wifi.setWifiEnabled(true);
+
+        if(wifi.isWifiEnabled() && (getWifiNetworkId()<0)){
+            new AlertDialog.Builder(this)
+                    .setTitle("Configuration of WiFi network")
+                    .setMessage("The WiFi network " + NETWORK_NAME + "is not configured. Add this ad-hoc network with static IP in WiFi parameters")
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                        }
+                    })
+                    .show();
+        }
+
+        if(!wifi.isWifiEnabled()){
+            new AlertDialog.Builder(this)
+                    .setTitle("Configuration of WiFi network")
+                    .setMessage("The WiFi is disabled, please enable")
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                        }
+                    })
+                    .show();
+        }
+
+
 
         (new Thread(new Runnable() {
             @Override
@@ -496,18 +552,13 @@ public class MainActivity extends Activity {
                         e.printStackTrace();
                     }
                 }
-
-                for (WifiConfiguration net : wifi.getConfiguredNetworks()){
-                    if (net.SSID.compareTo(NETWORK_NAME)==0){
-                        wifi.enableNetwork(net.networkId,true);
-                        break;
-                    }
-                }
+                wifi.enableNetwork(getWifiNetworkId(),true);
             }
         })).start();
 
-
     }
+    // end of Network support
+    ////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////
     // Backend initialisation
@@ -530,7 +581,11 @@ public class MainActivity extends Activity {
     }
 
     private BeaconSender initBeaconSender(){
-        return new BeaconSenderUDP( DST_PORT, BROAD_CAST_ADDR);
+        try {
+            return new BeaconSenderUDP( DST_PORT, getBroadcastAddress());
+        } catch (IOException e) {
+            return new BeaconSenderUDP( DST_PORT, BROAD_CAST_ADDR);
+        }
     }
 
     private BeaconRecv initBeaconRecv(String cmoName){

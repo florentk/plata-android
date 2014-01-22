@@ -21,8 +21,15 @@ public class BeaconSenderUDP implements BeaconSender {
 	private final int port;
 	private final InetAddress broadcastAddress;
 
-    public BeaconSenderUDP(int port, String address) {
+    public BeaconSenderUDP(int port, InetAddress broadcastAddress) {
 		super();
+        this.port = port;
+        this.socket = initUDP();
+        this.broadcastAddress = broadcastAddress;
+	}
+
+    public BeaconSenderUDP(int port, String address) {
+        super();
         this.port = port;
         this.socket = initUDP();
 
@@ -35,20 +42,23 @@ public class BeaconSenderUDP implements BeaconSender {
         }
 
         this.broadcastAddress = broadcastAddress;
-	}
-    
+    }
+
     public BeaconSenderUDP() {
     	this(DEFAULT_PORT,DEFAULT_BROADCAST_ADDRESS);
 	}
-    
+
     public BeaconSenderUDP(int port) {
     	this(port, DEFAULT_BROADCAST_ADDRESS);
 	}
-	
+
+
+
+
     private InetAddress getBroadcastAddress() throws IOException {
         return broadcastAddress;
     }
-	
+
 	@Override
 	public void broadcastData(byte[] data) {
         if (socket == null) {
